@@ -1,12 +1,11 @@
 version: '3.11'
+
 services:
   service_a:
-    build: 
-      context: ./service_a
+    build: ./service_a
     ports:
       - "8001:80"
   service_b:
-    build: 
-      context: ./service_b
+    build: ./service_b
     ports:
       - "8002:80"
