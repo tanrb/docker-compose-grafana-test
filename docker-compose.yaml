@@ -5,7 +5,25 @@ services:
     build: ./service_a
     ports:
       - "8001:80"
+    depends_on:
+      - mongo
   service_b:
     build: ./service_b
     ports:
       - "8002:80"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
