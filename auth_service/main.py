@@ -16,6 +16,8 @@ async def auth(request: Request):
     
     # Get hash from database
     user = db.test.find_one({"username": username})
+    
+    # If user does not exist, just return failure
     if (user == None):
         return {"message": "Failure"}
     
@@ -27,9 +29,7 @@ async def auth(request: Request):
     # Compare the two hashes
     if hash == db_hash:
         #return 200 OK
-        print("Success")
         return {"message": "Success"}
     else:
         #return 401 Unauthorized
-        print("Failure")
         return {"message": "Failure"}
