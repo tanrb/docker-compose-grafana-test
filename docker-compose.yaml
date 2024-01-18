@@ -1,16 +1,22 @@
 version: '3.11'
 
 services:
-  service_a:
-    build: ./service_a
+  homepage_service:
+    build: ./homepage_service
     ports:
       - "8001:80"
     depends_on:
       - mongo
-  service_b:
-    build: ./service_b
+  database_service:
+    build: ./database_service
     ports:
       - "8002:80"
+    depends_on:
+      - mongo
+  auth_service:
+    build: ./auth_service
+    ports:
+      - "8003:80"
     depends_on:
       - mongo
 
