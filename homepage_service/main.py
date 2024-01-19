@@ -17,7 +17,7 @@ async def hello():
 
 
 @app.post("/login")
-async def login(username: str = Form(...), password: str = Form(...)):
+async def login(username: str = Form(...), password: str = Form(...)): ## form object is required
     # Hash the username and password
     hash = await hash_username_password(username, password)
     

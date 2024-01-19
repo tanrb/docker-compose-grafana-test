@@ -216,11 +216,5 @@ services:
     networks:
       - loki
 
-  flog:
-    image: mingrammer/flog
-    command: -f json -d 200ms -l
-    networks:
-      - loki
-
 volumes:
   mongo_data:

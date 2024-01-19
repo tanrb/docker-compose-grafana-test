@@ -2,8 +2,21 @@ from fastapi import FastAPI, Request
 from pymongo import MongoClient
 from bson import json_util
 import json
+# import logging 
+# from multiprocessing import Queue
+# from logging_loki import LokiQueueHandler
 
 app = FastAPI()
+
+# loki_logs_handler = LokiQueueHandler(
+#     Queue(-1),
+#     url='http://gateway:3100/loki/api/v1/push',
+#     tags={"application": "fastapi"},
+#     version="1",
+# )
+
+# uvicorn_access_logger = logging.getLogger("uvicorn.access")
+# uvicorn_access_logger.addHandler(loki_logs_handler)
 
 # MongoDB connection
 client = MongoClient("mongodb://mongo:27017", username="root", password="example")
@@ -13,6 +26,8 @@ db = client["test"]
 async def drop_database():
     db.test.drop()
     return {"message": "Dropped"}
+
+
 
 @app.post("/add")
 async def add(request: Request):
@@ -27,6 +42,7 @@ async def add(request: Request):
 @app.get("/count")
 async def count_users():
     return {"count": db.test.count_documents({})}
+
 
 @app.get("/")
 async def list_users():
