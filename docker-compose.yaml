@@ -10,18 +10,29 @@ services:
       - "8001:80"
     depends_on:
       - mongo
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
+
   database_service:
     build: ./database_service
     ports:
       - "8002:80"
     depends_on:
       - mongo
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
+
   auth_service:
     build: ./auth_service
     ports:
       - "8003:80"
     depends_on:
       - mongo
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
       
   mongo:
     image: mongo
