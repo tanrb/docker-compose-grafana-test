@@ -55,6 +55,9 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - loki
+      - k6
 
   read:
     image: grafana/loki:2.9.2
