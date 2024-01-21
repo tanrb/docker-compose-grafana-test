@@ -11,7 +11,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/hello")
 async def hello():
-    # use internal docker network to communicate with service_b (port 80 exposed)
+    # use internal docker network to communicate with auth_service container (port 80 exposed)
     response = requests.get("http://auth_service:80/")
     return response.json()
 

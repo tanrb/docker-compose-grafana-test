@@ -2,6 +2,7 @@ version: '3.11'
 
 networks:
   loki:
+  k6:
 
 services:
   homepage_service:
@@ -13,6 +14,10 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
+    networks:
+      - loki
+      - k6
+
 
   database_service:
     build: ./database_service
@@ -23,6 +28,9 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
+    networks:
+      - loki
+      - k6
 
   auth_service:
     build: ./auth_service
@@ -33,6 +41,9 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
+    networks:
+      - loki
+      - k6
       
   mongo:
     image: mongo
@@ -227,5 +238,29 @@ services:
     networks:
       - loki
 
+  influxdb:
+    image: influxdb:1.8
+    networks:
+      - loki
+      - k6
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_DB=k6
+    
+  k6:
+    image: grafana/k6:latest
+    platform: linux/x86_64
+    networks:
+      - loki
+      - k6
+    volumes:
+      - ./scripts:/scripts
+    command: run --influxdb=http://influxdb:8086/k6 - /scripts/k6_script.js
+    depends_on:
+      - mongo
+      - influxdb
+    environment:
+      - K6_OUT=influxdb=http://influxdb:8086/k6
 volumes:
   mongo_data:

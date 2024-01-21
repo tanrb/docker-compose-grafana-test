@@ -8,6 +8,11 @@ app = FastAPI()
 client = MongoClient("mongodb://mongo:27017", username="root", password="example")
 db = client["test"]
 
+@app.get("/")
+async def hello():
+    # use internal docker network to communicate with auth_service container (port 80 exposed)
+    return "Hi from auth_service"
+
 @app.post("/authenticate")
 async def auth(request: Request):
     # Get username from request
