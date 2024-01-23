@@ -164,6 +164,7 @@ services:
         /run.sh
     ports:
       - "3000:3000"
+    
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
       interval: 10s
@@ -265,5 +266,23 @@ services:
       - influxdb
     environment:
       - K6_OUT=influxdb=http://influxdb:8086/k6
+
+  otelcol:
+    image: otel/opentelemetry-collector-contrib:0.76.1
+    deploy:
+      resources:
+        limits:
+          memory: 125M
+    restart: unless-stopped
+    command: [ "--config=/etc/otel-config.yaml" ]
+    depends_on:
+      - promtail
+    volumes:
+      - ./otel-config.yaml:/etc/otel-config.yaml
+    ports:
+      - "3500:3500" # loki receiver HTTP
+    networks:
+      - loki
+
 volumes:
   mongo_data:
