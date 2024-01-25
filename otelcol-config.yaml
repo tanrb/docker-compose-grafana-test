@@ -10,10 +10,10 @@ receivers:
   prometheus:
     config:
       scrape_configs:
-        - job_name: 'otelcol'
+        - job_name: 'otelcolhaha'
           scrape_interval: 15s
           static_configs:
-            - targets: ['prometheus:9090']
+            - targets: ['auth_service:80']
 
 processors:
   attributes:
@@ -27,9 +27,11 @@ processors:
 exporters:
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
-  prometheus:
-    endpoint: "0.0.0.0:9464"
-    namespace: fastapi
+  # prometheus:
+  #   endpoint: "0.0.0.0:9464"
+  #   namespace: fastapi
+  file:
+    path: ./logtest.json
 
 service:
   pipelines:
@@ -39,4 +41,4 @@ service:
       exporters: [loki]
     metrics:
       receivers: [otlp, prometheus]
-      exporters: [prometheus]
+      exporters: [file]

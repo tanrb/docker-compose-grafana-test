@@ -120,16 +120,9 @@ services:
     command: [ "--config=/etc/otelcol-config.yaml" ]
     volumes:
       - ./otelcol-config.yaml:/etc/otelcol-config.yaml
+      - ./logtest.json:/logtest.json
     ports:
       - "3500:3500" # loki receiver HTTP
-    networks:
-      - loki
-  prometheus:
-    image: prom/prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
     networks:
       - loki
 
