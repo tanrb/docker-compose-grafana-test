@@ -7,6 +7,13 @@ receivers:
     protocols:
       http:
         endpoint: "0.0.0.0:4137"
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otelcol'
+          scrape_interval: 15s
+          static_configs:
+            - targets: ['prometheus:9090']
 
 processors:
   attributes:
@@ -31,5 +38,5 @@ service:
       processors: [attributes]
       exporters: [loki]
     metrics:
-      receivers: [otlp]
+      receivers: [otlp, prometheus]
       exporters: [prometheus]

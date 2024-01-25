@@ -124,5 +124,14 @@ services:
       - "3500:3500" # loki receiver HTTP
     networks:
       - loki
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - loki
+
 volumes:
   mongo_data:
