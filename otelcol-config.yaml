@@ -1,0 +1,35 @@
+receivers:
+  loki:
+    protocols:
+      http:
+    use_incoming_timestamp: true
+  otlp:
+    protocols:
+      http:
+        endpoint: "0.0.0.0:4137"
+
+processors:
+  attributes:
+    actions:
+      - action: insert
+        key: loki.attribute.labels
+        value: container
+      - action: insert
+        key: loki.format
+        value: raw
+exporters:
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+  prometheus:
+    endpoint: "0.0.0.0:9464"
+    namespace: fastapi
+
+service:
+  pipelines:
+    logs:
+      receivers: [loki]
+      processors: [attributes]
+      exporters: [loki]
+    metrics:
+      receivers: [otlp]
+      exporters: [prometheus]

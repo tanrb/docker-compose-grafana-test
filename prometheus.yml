@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 15s  # Adjust the scrape interval as needed
+
+scrape_configs:
+  - job_name: 'auth_service'
+    static_configs:
+      - targets: ['localhost:8003']
+    metrics_path: '/metrics'

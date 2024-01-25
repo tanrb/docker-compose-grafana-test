@@ -1,8 +1,10 @@
 from fastapi import FastAPI, Request
 from pymongo import MongoClient
 import requests
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
+Instrumentator().instrument(app).expose(app)
 
 # MongoDB connection
 client = MongoClient("mongodb://mongo:27017", username="root", password="example")

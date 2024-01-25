@@ -3,3 +3,4 @@ uvicorn
 pymongo
 requests
 python-multipart
+prometheus_fastapi_instrumentator
