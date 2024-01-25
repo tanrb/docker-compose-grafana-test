@@ -105,8 +105,6 @@ services:
       - ./promtail-local-config.yaml:/etc/promtail/config.yaml:ro
       - /var/run/docker.sock:/var/run/docker.sock
     command: -config.file=/etc/promtail/config.yaml
-    depends_on:
-      - gateway
     networks:
       - loki
 
@@ -142,8 +140,7 @@ services:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-    depends_on:
-      - gateway
+    
     entrypoint:
       - sh
       - -euc
@@ -155,7 +152,7 @@ services:
           - name: Loki
             type: loki
             access: proxy
-            url: http://gateway:3100
+            url: http://loki:3100
             jsonData:
               httpHeaderName1: "X-Scope-OrgID"
             secureJsonData:
@@ -173,74 +170,74 @@ services:
     networks:
       - loki
 
-  gateway:
-    image: nginx:latest
-    depends_on:
-      - read
-      - write
-    entrypoint:
-      - sh
-      - -euc
-      - |
-        cat <<EOF > /etc/nginx/nginx.conf
-        user  nginx;
-        worker_processes  5;  ## Default: 1
+  # gateway:
+  #   image: nginx:latest
+  #   depends_on:
+  #     - read
+  #     - write
+  #   entrypoint:
+  #     - sh
+  #     - -euc
+  #     - |
+  #       cat <<EOF > /etc/nginx/nginx.conf
+  #       user  nginx;
+  #       worker_processes  5;  ## Default: 1
 
-        events {
-          worker_connections   1000;
-        }
+  #       events {
+  #         worker_connections   1000;
+  #       }
 
-        http {
-          resolver 127.0.0.11;
+  #       http {
+  #         resolver 127.0.0.11;
 
-          server {
-            listen             3100;
+  #         server {
+  #           listen             3100;
 
-            location = / {
-              return 200 'OK';
-              auth_basic off;
-            }
+  #           location = / {
+  #             return 200 'OK';
+  #             auth_basic off;
+  #           }
 
-            location = /api/prom/push {
-              proxy_pass       http://write:3100\$$request_uri;
-            }
+  #           location = /api/prom/push {
+  #             proxy_pass       http://write:3100\$$request_uri;
+  #           }
 
-            location = /api/prom/tail {
-              proxy_pass       http://read:3100\$$request_uri;
-              proxy_set_header Upgrade \$$http_upgrade;
-              proxy_set_header Connection "upgrade";
-            }
+  #           location = /api/prom/tail {
+  #             proxy_pass       http://read:3100\$$request_uri;
+  #             proxy_set_header Upgrade \$$http_upgrade;
+  #             proxy_set_header Connection "upgrade";
+  #           }
 
-            location ~ /api/prom/.* {
-              proxy_pass       http://read:3100\$$request_uri;
-            }
+  #           location ~ /api/prom/.* {
+  #             proxy_pass       http://read:3100\$$request_uri;
+  #           }
 
-            location = /loki/api/v1/push {
-              proxy_pass       http://write:3100\$$request_uri;
-            }
+  #           location = /loki/api/v1/push {
+  #             proxy_pass       http://write:3100\$$request_uri;
+  #           }
 
-            location = /loki/api/v1/tail {
-              proxy_pass       http://read:3100\$$request_uri;
-              proxy_set_header Upgrade \$$http_upgrade;
-              proxy_set_header Connection "upgrade";
-            }
+  #           location = /loki/api/v1/tail {
+  #             proxy_pass       http://read:3100\$$request_uri;
+  #             proxy_set_header Upgrade \$$http_upgrade;
+  #             proxy_set_header Connection "upgrade";
+  #           }
 
-            location ~ /loki/api/.* {
-              proxy_pass       http://read:3100\$$request_uri;
-            }
-          }
-        }
-        EOF
-        /docker-entrypoint.sh nginx -g "daemon off;"
-    ports:
-      - "3100:3100"
-    healthcheck:
-      test: ["CMD", "service", "nginx", "status"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - loki
+  #           location ~ /loki/api/.* {
+  #             proxy_pass       http://read:3100\$$request_uri;
+  #           }
+  #         }
+  #       }
+  #       EOF
+  #       /docker-entrypoint.sh nginx -g "daemon off;"
+  #   ports:
+  #     - "3100:3100"
+  #   healthcheck:
+  #     test: ["CMD", "service", "nginx", "status"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - loki
 
   influxdb:
     image: influxdb:1.8
@@ -268,7 +265,7 @@ services:
       - K6_OUT=influxdb=http://influxdb:8086/k6
 
   otelcol:
-    image: otel/opentelemetry-collector-contrib:0.76.1
+    image: otel/opentelemetry-collector-contrib:latest
     deploy:
       resources:
         limits:
