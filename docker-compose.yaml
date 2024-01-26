@@ -33,7 +33,7 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
-      aggregated_jobname: "group-1"
+      
     networks:
       - loki
   database_service:
@@ -45,7 +45,7 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
-      aggregated_jobname: "group-1"
+      
     networks:
       - loki
   auth_service:
@@ -57,7 +57,7 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
-      aggregated_jobname: "group-1"
+     
     networks:
       - loki
   mongo:

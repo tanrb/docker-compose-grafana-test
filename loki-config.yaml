@@ -1,6 +1,16 @@
 ---
 server:
   http_listen_port: 3100
+querier:
+  max_concurrent: 2048
+  query_scheduler:
+  max_outstanding_requests_per_tenant: 4096
+  engine:
+    timeout: 15m
+  query_timeout: 15m
+query_range:
+  split_queries_by_interval: 0
+  parallelise_shardable_queries: false
 memberlist:
   join_members:
     - loki:7946
@@ -18,7 +28,7 @@ common:
   replication_factor: 1
   storage:
     s3:
-      endpoint: minio:9000
+      endpoint: minio:9000 
       insecure: true
       bucketnames: loki-data
       access_key_id: loki
