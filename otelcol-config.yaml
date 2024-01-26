@@ -10,7 +10,7 @@ receivers:
   prometheus:
     config:
       scrape_configs:
-        - job_name: 'otelcolhaha'
+        - job_name: 'otelcollector'
           scrape_interval: 15s
           static_configs:
             - targets: ['auth_service:80']
@@ -18,12 +18,10 @@ receivers:
 processors:
   attributes:
     actions:
-      - action: insert
-        key: loki.attribute.labels
-        value: container
-      - action: insert
-        key: loki.format
-        value: raw
+    - action: upsert
+      key: loki.attribute.labels
+      value: container, job
+      
 exporters:
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
