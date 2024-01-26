@@ -126,8 +126,16 @@ services:
       - ./logtest.json:/logtest.json
     ports:
       - "3500:3500" # loki receiver HTTP
+      - "9464:9464" # prometheus 
     networks:
       - loki
-
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - loki
 volumes:
   mongo_data:

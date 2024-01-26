@@ -10,7 +10,7 @@ receivers:
   prometheus:
     config:
       scrape_configs:
-        - job_name: 'otelcollector'
+        - job_name: 'otelcolhaha'
           scrape_interval: 15s
           static_configs:
             - targets: ['auth_service:80']
@@ -18,16 +18,18 @@ receivers:
 processors:
   attributes:
     actions:
-    - action: upsert
-      key: loki.attribute.labels
-      value: container, job
-      
+      - action: insert
+        key: loki.attribute.labels
+        value: container
+      - action: insert
+        key: loki.format
+        value: raw
 exporters:
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
-  # prometheus:
-  #   endpoint: "0.0.0.0:9464"
-  #   namespace: fastapi
+  prometheus:
+    endpoint: "0.0.0.0:9464"
+    namespace: "test-space"
   file:
     path: ./logtest.json
 
@@ -39,4 +41,4 @@ service:
       exporters: [loki]
     metrics:
       receivers: [otlp, prometheus]
-      exporters: [file]
+      exporters: [file, prometheus]
