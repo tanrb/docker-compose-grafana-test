@@ -20,7 +20,7 @@ processors:
     actions:
       - action: insert
         key: loki.attribute.labels
-        value: container
+        value: container,job
       - action: insert
         key: loki.format
         value: raw

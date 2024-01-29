@@ -33,7 +33,7 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
-      
+
     networks:
       - loki
   database_service:
