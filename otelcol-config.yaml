@@ -5,12 +5,12 @@ receivers:
     use_incoming_timestamp: true
   otlp:
     protocols:
+      grpc:
       http:
-        endpoint: "0.0.0.0:4137"
   prometheus:
     config:
       scrape_configs:
-        - job_name: 'otelcolhaha'
+        - job_name: 'otelcol'
           scrape_interval: 15s
           static_configs:
             - targets: ['auth_service:80']
@@ -41,4 +41,7 @@ service:
       exporters: [loki]
     metrics:
       receivers: [otlp, prometheus]
-      exporters: [file, prometheus]
+      exporters: [prometheus]
+    traces:
+      receivers: [otlp]
+      exporters: [file]

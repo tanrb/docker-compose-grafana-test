@@ -2,3 +2,9 @@ fastapi
 uvicorn
 requests
 python-multipart
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-exporter-otlp-proto-grpc
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-logging
+fastapi_opentelemetry
