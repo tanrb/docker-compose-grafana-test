@@ -124,9 +124,11 @@ services:
     volumes:
       - ./otelcol-config.yaml:/etc/otelcol-config.yaml
       - ./logtest.json:/logtest.json
+      - ./trace_test.json:/trace_test.json
     ports:
       - "3500:3500" # loki receiver HTTP
-      - "9464:9464" # prometheus 
+      - "9464:9464" # prometheus
+      - "4138:4138" 
     networks:
       - loki
   prometheus:

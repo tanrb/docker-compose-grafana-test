@@ -7,6 +7,8 @@ receivers:
     protocols:
       http:
         endpoint: "0.0.0.0:4137"
+      grpc:
+        endpoint: "0.0.0.0:4138"
   prometheus:
     config:
       scrape_configs:
@@ -30,8 +32,10 @@ exporters:
   prometheus:
     endpoint: "0.0.0.0:9464"
     namespace: "test-space"
+  # file:
+  #   path: ./logtest.json
   file:
-    path: ./logtest.json
+    path: ./trace_test.json
 
 service:
   pipelines:
@@ -40,5 +44,8 @@ service:
       processors: [attributes]
       exporters: [loki]
     metrics:
-      receivers: [otlp, prometheus]
-      exporters: [file, prometheus]
+      receivers: [otlp,prometheus]
+      exporters: [prometheus]
+    traces:
+      receivers: [otlp]
+      exporters: [file]
