@@ -3,6 +3,47 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, RedirectResponse
 import requests
 import hashlib
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
+    ConsoleSpanExporter,
+)
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+import logging
+
+# Creates a tracer from the global tracer provider
+tracer = trace.get_tracer("my.tracer.name")
+
+
+OTEL_EXPORTER_OTLP_ENDPOINT="http://otelcol:4137/v1/traces"
+OTEL_RESOURCE_ATTRIBUTES="service.name=homepage-service"
+
+resource = Resource(attributes={
+    SERVICE_NAME: OTEL_RESOURCE_ATTRIBUTES
+})
+
+traceProvider = TracerProvider(resource=resource)
+processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=OTEL_EXPORTER_OTLP_ENDPOINT))
+traceProvider.add_span_processor(processor)
+trace.set_tracer_provider(traceProvider)
+
+# Set up logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+format_str = '%(levelname)s:%(lineno)s:%(message)s'
+formatter = logging.Formatter(format_str)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+logger.info('Logger ready')
+
+
+
 
 app = FastAPI()
 
@@ -19,18 +60,27 @@ async def hello():
 @app.post("/login")
 async def login(username: str = Form(...), password: str = Form(...)): ## form object is required
     # Hash the username and password
-    hash = await hash_username_password(username, password)
-    
-    user_data = {
-        "username": username,
-        "hash": hash
-    }
-
-    # Send the hashed username and password to the auth service
-    response = requests.post("http://auth_service:80/authenticate", json=user_data)
-    
-    return response.json()
-    
+    with tracer.start_as_current_span("auth-user") as span:
+        hash = await hash_username_password(username, password)
+        
+        user_data = {
+            "username": username,
+            "hash": hash
+        }
+        current_span = trace.get_current_span()
+        logger.info(current_span)
+        # Send the hashed username and password to the auth service
+        response = requests.post("http://auth_service:80/authenticate", json=user_data)
+        if response == {'message': 'Failure'}:
+            span.add_event("log", {
+                "log.severity": "error",
+                "log.message": "User not found",
+                "enduser.id": username,
+            })
+            return {"message": "Failure"}
+        logger.info(current_span)
+        return response.json()
+        
 # Method to hash username and password
 @app.get("/hash")
 async def hash_username_password(username, password):
