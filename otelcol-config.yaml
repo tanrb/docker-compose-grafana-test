@@ -5,6 +5,8 @@ receivers:
     use_incoming_timestamp: true
   otlp:
     protocols:
+      grpc:
+        endpoint: 
       http:
         endpoint: "0.0.0.0:4137"
   prometheus:
@@ -35,10 +37,13 @@ exporters:
 
 service:
   pipelines:
-    logs:
-      receivers: [loki]
-      processors: [attributes]
-      exporters: [loki]
-    metrics:
-      receivers: [otlp, prometheus]
-      exporters: [file, prometheus]
+    # logs:
+    #   receivers: [loki]
+    #   processors: [attributes]
+    #   exporters: [loki]
+    # metrics:
+    #   receivers: [otlp, prometheus]
+    #   exporters: [file, prometheus]
+    traces:
+      receivers: [otlp]
+      exporters: [file]
