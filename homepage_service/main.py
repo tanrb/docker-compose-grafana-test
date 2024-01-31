@@ -74,7 +74,7 @@ async def login(username: str = Form(...), password: str = Form(...)): ## form o
         current_span = trace.get_current_span()
         # logger.info(current_span)
         # Send the hashed username and password to the auth service
-        response = requests.post("http://auth_service:80/authenticate", json=user_data, headers = headers)
+        response = requests.post("http://auth_service:80/authenticate", json=user_data)
         if response == {'message': 'Failure'}:
             span.add_event("log", {
                 "log.severity": "error",

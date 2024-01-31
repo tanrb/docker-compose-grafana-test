@@ -34,6 +34,10 @@ exporters:
     namespace: "test-space"
   file:
     path: ./logtest.json
+  otlp:
+    endpoint: "0.0.0.0:3200"
+    tls:
+      insecure: true  
 
 service:
   pipelines:
@@ -46,4 +50,4 @@ service:
       exporters: [prometheus]
     traces:
       receivers: [otlp]
-      exporters: [file]
+      exporters: [file, otlp]
