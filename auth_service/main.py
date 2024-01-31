@@ -5,13 +5,12 @@ from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from prometheus_fastapi_instrumentator import Instrumentator
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import (
-    BatchSpanProcessor,
-    ConsoleSpanExporter,
-)
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry import trace, propagators, baggage
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+from opentelemetry.baggage.propagation import W3CBaggagePropagator
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter, BatchSpanProcessor
 import logging
 
 
@@ -34,7 +33,7 @@ OTEL_RESOURCE_ATTRIBUTES="service.name=auth-service"
 
 
 # Creates a tracer from the global tracer provider
-tracer = trace.get_tracer("my.tracer.name")
+
 
 
 resource = Resource(attributes={
@@ -44,8 +43,8 @@ resource = Resource(attributes={
 traceProvider = TracerProvider(resource=resource)
 processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=OTEL_EXPORTER_OTLP_ENDPOINT))
 traceProvider.add_span_processor(processor)
-trace.set_tracer_provider(traceProvider)
-
+trace.set_tracer_provider(traceProvider) #By associating a resource with the tracer provider, additional contextual information about the service or entity that is generating traces is provided
+tracer = trace.get_tracer("__name__")
 app = FastAPI()
 Instrumentator().instrument(app).expose(app)
 
@@ -60,7 +59,18 @@ async def hello():
 
 @app.post("/authenticate")
 async def auth(request: Request):
-    with tracer.start_as_current_span("auth-user") as span:
+    headers = request.headers
+    logger.info(f"Received headers: {headers}")
+    carrier ={'traceparent': headers['Traceparent']}
+    ctx = TraceContextTextMapPropagator().extract(carrier=carrier)
+    logger.info(f"Received context: {ctx}")
+
+    b2 ={'baggage': headers['Baggage']}
+    ctx2 = W3CBaggagePropagator().extract(b2, context=ctx)
+    logger.info(f"Received context2: {ctx2}")
+
+    with tracer.start_as_current_span("auth-user", context=ctx2) as span:
+        
         # Get username from request
         body = await request.json()
         username = body["username"]
@@ -68,7 +78,7 @@ async def auth(request: Request):
         # Get hash from database
         user = db.test.find_one({"username": username})
         current_span = trace.get_current_span()
-        logger.info(current_span)
+        # logger.info(current_span)
         
         # If user does not exist, just return failures
         if (user == None):
@@ -79,7 +89,7 @@ async def auth(request: Request):
         # Calculate hash from whatever the user entered
         hash = body["hash"]
         
-        logger.info(current_span)
+        # logger.info(current_span)
         # Compare the two hashes
         if hash == db_hash:
             #return 200 OK
