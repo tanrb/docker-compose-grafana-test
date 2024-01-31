@@ -143,7 +143,7 @@ services:
     image: grafana/tempo:latest
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
-      - ../shared/tempo.yaml:/etc/tempo.yaml
+      - ./tempo.yaml:/etc/tempo.yaml
       - ./tempo-data:/tmp/tempo
     ports:
       - "3200:3200"
