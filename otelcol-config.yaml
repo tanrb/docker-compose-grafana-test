@@ -37,13 +37,13 @@ exporters:
 
 service:
   pipelines:
-    # logs:
-    #   receivers: [loki]
-    #   processors: [attributes]
-    #   exporters: [loki]
-    # metrics:
-    #   receivers: [otlp, prometheus]
-    #   exporters: [file, prometheus]
+    logs:
+      receivers: [loki]
+      processors: [attributes]
+      exporters: [loki]
+    metrics:
+      receivers: [otlp, prometheus]
+      exporters: [prometheus]
     traces:
       receivers: [otlp]
       exporters: [file]

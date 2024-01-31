@@ -33,7 +33,10 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
-
+    environment:
+      - OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://otelcol:4137/v1/traces
+      - OTEL_SERVICE_NAME="homepage-service-auto"
     networks:
       - loki
   database_service:
@@ -52,8 +55,13 @@ services:
     build: ./auth_service
     ports:
       - "8003:80"
+    environment:
+      - OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://otelcol:4137/v1/traces
+      - OTEL_SERVICE_NAME="auth-service-auto"
     depends_on:
       - mongo
+      - otelcol
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
