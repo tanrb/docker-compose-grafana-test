@@ -35,7 +35,7 @@ exporters:
   file:
     path: ./logtest.json
   otlp:
-    endpoint: "http://tempo:3200"
+    endpoint: http://tempo:4318
     tls:
       insecure: true  
 
