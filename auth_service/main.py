@@ -61,7 +61,7 @@ async def hello():
 async def auth(request: Request):
     headers = request.headers
     logger.info(f"Received headers: {headers}")
-    carrier ={'traceparent': headers['Traceparent']}
+    carrier ={'Traceparent': headers['Traceparent']}
     ctx = TraceContextTextMapPropagator().extract(carrier=carrier)
     logger.info(f"Received context: {ctx}")
 

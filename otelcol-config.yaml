@@ -34,6 +34,7 @@ exporters:
     namespace: "test-space"
   file:
     path: ./logtest.json
+  
 
 service:
   pipelines:
