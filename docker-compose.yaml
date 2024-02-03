@@ -33,7 +33,13 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
-
+    environment:
+      - OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://otelcol:4137/v1/traces
+      - OTEL_SERVICE_NAME="homepage-service-auto"
+      - OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST="Accept-Encoding,User-Agent,Referer"
+      - OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE="Last-Modified,Content-Type"
+      - OTEL_RESOURCE_ATTRIBUTES="custom.attribute1=value1,custom.attribute2=value2"
     networks:
       - loki
   database_service:
@@ -57,7 +63,46 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
-     
+    environment:
+      - OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://otelcol:4137/v1/traces
+      - OTEL_SERVICE_NAME="auth-service-auto"
+      - OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST="Accept-Encoding,User-Agent,Referer"
+      - OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE="Last-Modified,Content-Type"
+    networks:
+      - loki
+  test_service:
+    build: ./test_service
+    ports:
+      - "8004:80"
+    depends_on:
+      - mongo
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
+    environment:
+      - OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://otelcol:4137/v1/traces
+      - OTEL_SERVICE_NAME="test-service-auto"
+      - OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST="Accept-Encoding,User-Agent,Referer"
+      - OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE="Last-Modified,Content-Type"
+    networks:
+      - loki
+  test1_service:
+    build: ./test1_service
+    ports:
+      - "8005:80"
+    depends_on:
+      - mongo
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
+    environment:
+      - OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://otelcol:4137/v1/traces
+      - OTEL_SERVICE_NAME="test1-service-auto"
+      - OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST="Accept-Encoding,User-Agent,Referer"
+      - OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE="Last-Modified,Content-Type"
     networks:
       - loki
   mongo:
@@ -97,6 +142,10 @@ services:
             type: loki
             access: proxy
             url: http://loki:3100
+          - name: Tempo
+            type: tempo
+            access: proxy
+            url: http://tempo:3200
         EOF
         /run.sh
     ports:

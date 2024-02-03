@@ -45,9 +45,9 @@ service:
       receivers: [loki]
       processors: [attributes]
       exporters: [loki]
-    metrics:
-      receivers: [otlp, prometheus]
-      exporters: [prometheus]
+    # metrics:
+    #   receivers: [otlp, prometheus]
+    #   exporters: [prometheus]
     traces:
       receivers: [otlp]
       exporters: [file, otlp]

@@ -14,8 +14,6 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import ConsoleSpanExporter, BatchSpanProcessor
 import logging
 
-from opentelemetry.trace import get_current_span
-
 
 # Set up logger
 # logger = logging.getLogger(__name__)
@@ -62,58 +60,16 @@ async def hello():
 
 @app.post("/authenticate")
 async def auth(request: Request):
-    # headers = request.headers
-    # logger.info(f"Received headers: {headers}")
-    # carrier ={'traceparent': headers['Traceparent']}
-    # ctx = TraceContextTextMapPropagator().extract(carrier=carrier)
-    # logger.info(f"Received context: {ctx}")
-
-    # b2 ={'baggage': headers['Baggage']}
-    # ctx2 = W3CBaggagePropagator().extract(b2, context=ctx)
-    # logger.info(f"Received context2: {ctx2}")
-
-    # with tracer.start_as_current_span("auth-user", context=ctx2) as span:
-        
-    # Get username from request
     body = await request.json()
     username = body["username"]
-    
-    # crash
-    if (username == "testtest"):
-        aa = "asdasdasd"
-        int(aa)
-        user = user + 1
-    
-    # Get hash from database
-    user = db.test.find_one({"username": username})
-    # current_span = trace.get_current_span()
-    # logger.info(current_span)
-    
-    # If user does not exist, just return failures
-    if (user == None):
-        span = get_current_span()
-        if span is not None:
-            trace_id = span.get_span_context().trace_id
-            print(trace_id)
-            print("404, user is none")
-        raise HTTPException(status_code=404, detail="user is none", headers={"X-Error": "There goes my error"}) 
-        # return JSONResponse(content={"success": False, "error": "Item not found"}, status_code=404)
-    
-    db_hash = user["hash"]
-    
-    # # Calculate hash from whatever the user entered
     hash = body["hash"]
     
-    # logger.info(current_span)
-    # Compare the two hashes
-    if hash == db_hash:
-        #return 200 OK
-        return {"message": "Success"}
-    else:
-        #return 401 Unauthorized
-        # span.add_event("log", {
-        #     "log.severity": "error",
-        #     "log.message": "User not found",
-        #     "enduser.id": username,
-        # })
-        return {"message": "Failure"}
+    user_data = {
+        "username": username,
+        "hash": hash
+    }
+    
+    # Send the hashed username and password to the auth service
+    response = requests.post("http://auth_service:80/authenticate", json=user_data)
+    
+    return response.json()
