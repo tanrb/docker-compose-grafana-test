@@ -1,0 +1,3 @@
+[submodule "submodules/docker-compose-grafana-test"]
+	path = submodules/docker-compose-grafana-test
+	url = https://github.com/tanrb/docker-compose-grafana-test.git
