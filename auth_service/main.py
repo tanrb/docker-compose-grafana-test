@@ -14,7 +14,7 @@ from opentelemetry.sdk.trace.export import ConsoleSpanExporter, BatchSpanProcess
 import logging
 
 
-# Set up logger
+# Set up logger to display logs to be sent to console ##
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
@@ -29,13 +29,6 @@ OTEL_EXPORTER_OTLP_ENDPOINT="http://otelcol:4137/v1/traces"
 OTEL_RESOURCE_ATTRIBUTES="service.name=auth-service"
 
 
-# Sets the global default tracer provider
-
-
-# Creates a tracer from the global tracer provider
-
-
-
 resource = Resource(attributes={
     SERVICE_NAME: OTEL_RESOURCE_ATTRIBUTES
 })
@@ -44,7 +37,7 @@ traceProvider = TracerProvider(resource=resource)
 processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=OTEL_EXPORTER_OTLP_ENDPOINT))
 traceProvider.add_span_processor(processor)
 trace.set_tracer_provider(traceProvider) #By associating a resource with the tracer provider, additional contextual information about the service or entity that is generating traces is provided
-tracer = trace.get_tracer("__name__")
+
 app = FastAPI()
 Instrumentator().instrument(app).expose(app)
 
@@ -59,6 +52,7 @@ async def hello():
 
 @app.post("/authenticate")
 async def auth(request: Request):
+    tracer = trace.get_tracer("auth_service")
     headers = request.headers
     logger.info(f"Received headers: {headers}")
     carrier ={'traceparent': headers['Traceparent']}
@@ -72,7 +66,10 @@ async def auth(request: Request):
     with tracer.start_as_current_span("auth-user", context=ctx2) as span:
         
         # Get username from request
+        print(request)
         body = await request.json()
+        print(body)
+        print(request.body())
         username = body["username"]
         
         # Get hash from database

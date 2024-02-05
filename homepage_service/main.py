@@ -14,25 +14,23 @@ from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapProp
 from opentelemetry.baggage.propagation import W3CBaggagePropagator
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import ConsoleSpanExporter, BatchSpanProcessor
+from opentelemetry.trace import StatusCode
 
 import logging
 
-# Creates a tracer from the global tracer provider
-tracer = trace.get_tracer("my.tracer.name")
 
 
 OTEL_EXPORTER_OTLP_ENDPOINT="http://otelcol:4137/v1/traces"
-OTEL_RESOURCE_ATTRIBUTES="service.name=homepage-service"
+OTEL_RESOURCE_ATTRIBUTES="service.name=homepage-service" ## service name can be used to query in TraceQL
 
 resource = Resource(attributes={
     SERVICE_NAME: OTEL_RESOURCE_ATTRIBUTES
 })
 
-traceProvider = TracerProvider(resource=resource)
-processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=OTEL_EXPORTER_OTLP_ENDPOINT))
-traceProvider.add_span_processor(processor)
-trace.set_tracer_provider(traceProvider)
-
+traceProvider = TracerProvider(resource=resource) ## initialises a tracer 
+processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=OTEL_EXPORTER_OTLP_ENDPOINT)) #pecifying what should be done with the spans and endpoint exporting
+traceProvider.add_span_processor(processor) #Add the span processor to the tracer provider.
+trace.set_tracer_provider(traceProvider) #set the tracer provider as the global tracer provider, ensures that all tracers created use the configured tracer provider
 # Set up logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -55,9 +53,41 @@ async def hello():
     return response.json()
 
 
+# @app.post("/login")
+# async def login(username: str = Form(...), password: str = Form(...)): ## form object is required
+#     # Creates a tracer from the global tracer provider
+#     tracer = trace.get_tracer("homepage_trace")
+#     # Hash the username and password
+#     with tracer.start_as_current_span("login_homepage") as span: ## login_homepage is the name of the span and can be used to query in TraceQL
+#         ctx = baggage.set_baggage("flow", "login_user")
+#         headers = {}
+#         W3CBaggagePropagator().inject(headers, ctx)
+#         TraceContextTextMapPropagator().inject(headers, ctx)
+#         logger.info(headers)
+
+#         hash = await hash_username_password(username, password)
+        
+#         user_data = {
+#             "username": username,
+#             "hash": hash
+#         }
+#         current_span = trace.get_current_span()
+#         # logger.info(current_span)
+#         # Send the hashed username and password to the auth service
+#         response = requests.post("http://auth_service:80/authenticate", json=user_data, headers=headers)
+#         if response != 200:
+#             span.add_event("log", {
+#                 "log.severity": "error",
+#                 "log.message": "User not found",
+#                 "enduser.id": username,
+#             })
+#             return {"message": "Failure"}
+#         # logger.info(current_span)
+#         return response.json()
+
 @app.post("/login")
-async def login(username: str = Form(...), password: str = Form(...)): ## form object is required
-    # Hash the username and password
+async def login(username: str = Form(...), password: str = Form(...)):
+    tracer = trace.get_tracer("homepage_trace")
     with tracer.start_as_current_span("login_homepage") as span:
         ctx = baggage.set_baggage("flow", "login_user")
         headers = {}
@@ -66,23 +96,29 @@ async def login(username: str = Form(...), password: str = Form(...)): ## form o
         logger.info(headers)
 
         hash = await hash_username_password(username, password)
-        
+
         user_data = {
             "username": username,
             "hash": hash
         }
-        current_span = trace.get_current_span()
-        # logger.info(current_span)
+
         # Send the hashed username and password to the auth service
         response = requests.post("http://auth_service:80/authenticate", json=user_data, headers=headers)
-        if response == {'message': 'Failure'}:
+
+        if response.status_code != 200:
             span.add_event("log", {
                 "log.severity": "error",
-                "log.message": "User not found",
-                "enduser.id": username,
+                "log.message": f"Authentication failed for user {username}",
             })
+
+            # Update the span status to indicate an error
+            span.set_status(
+                code=trace.Status.ERROR,
+                description=f"Authentication failed for user {username}"
+            )
+
             return {"message": "Failure"}
-        # logger.info(current_span)
+
         return response.json()
         
 # Method to hash username and password

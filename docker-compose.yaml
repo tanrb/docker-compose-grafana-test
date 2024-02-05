@@ -97,6 +97,10 @@ services:
             type: loki
             access: proxy
             url: http://loki:3100
+          - name: Tempo
+            type: tempo
+            access: proxy
+            url: http://tempo:3200
         EOF
         /run.sh
     ports:
@@ -126,7 +130,7 @@ services:
       - ./logtest.json:/logtest.json
     ports:
       - "3500:3500" # loki receiver HTTP
-      - "4137:4137" # http reciever
+      - "4137:4137" # http reciever for trace 
       - "9464:9464" # prometheus 
     networks:
       - loki
@@ -145,9 +149,8 @@ services:
       - ./tempo.yaml:/etc/tempo.yaml
       - ./tempo-data:/tmp/tempo
     ports:
-      - "3200:3200"
-      - "4317:4317"
-      - "4318:4318"
+      - "3200:3200" ## for localhost to Tempo
+      - "4317:4317" ## export to tempo from otel
     networks:
       - loki
     
